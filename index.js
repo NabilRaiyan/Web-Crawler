@@ -1,28 +1,30 @@
-const puppeteer = require("puppeteer")
-const fs = require('fs/promises')
+const puppeteer = require("puppeteer");
 
-
-async function start(){
-    const browser = await puppeteer.launch()
+async function start() {
+    const browser = await puppeteer.launch({ headless: false }); // Run in visible mode
     const page = await browser.newPage();
-    await page.goto("https://chaldal.com/diabetic-food")
-    const names = await page.evaluate(()=>{
-        return Array.from(document.querySelectorAll(".product .imageWrapper .name")).map(x => x.textContent)
-    })
-    console.log(names);
 
-    // names.forEach(name => {
-    //     // if (name === "Quaker Oats Jar"){
-    //     //     console.log("matched")
-    //     // }else{
-    //     //     console.log("not matched")
-    //     // }
-    //     console.log(name)
-    // })
+    // Navigate to the Chaldal page
+    await page.goto("https://chaldal.com/premium-perishables", { waitUntil: 'networkidle0' });
 
-    // await fs.writeFile("name.txt", names.join("\r\n"))
+    // Ensure the page is fully loaded and the necessary elements are present
+    await page.waitForSelector(".product"); // Adjust selector as needed
 
-    // await page.screenshot({path: "amazing.png", fullPage: true})
-    await browser.close()
+    // Inject CSS to change the background color of elements
+    await page.evaluate(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+            .product .imageWrapper .name {
+                background-color: red !important;
+            }
+        `;
+        document.head.appendChild(style);
+    });
+
+    // Optional: Take a screenshot to verify changes
+    // await page.screenshot({ path: "screenshot.png", fullPage: true });
+
+    // await browser.close();
 }
-start()
+
+start();
